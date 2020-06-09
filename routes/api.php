@@ -41,6 +41,9 @@ Route::resource('markets', 'API\MarketAPIController');
 
 Route::resource('faq_categories', 'API\FaqCategoryAPIController');
 Route::resource('products', 'API\ProductAPIController');
+Route::post('products/update/{id}', 'API\ProductAPIController@update');
+Route::post('products/delete/{id}', 'API\ProductAPIController@destroy');
+Route::post('products/create', 'API\ProductAPIController@store');
 Route::resource('galleries', 'API\GalleryAPIController');
 Route::resource('product_reviews', 'API\ProductReviewAPIController');
 
