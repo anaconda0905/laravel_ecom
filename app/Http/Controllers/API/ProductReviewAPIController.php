@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Response;
 use Prettus\Repository\Exceptions\RepositoryException;
 use Flash;
 use Prettus\Validator\Exceptions\ValidatorException;
+use App\Repositories\UserRepository;
+use App\Repositories\ProductRepository;
 
 /**
  * Class ProductReviewController
@@ -23,10 +25,14 @@ class ProductReviewAPIController extends Controller
 {
     /** @var  ProductReviewRepository */
     private $productReviewRepository;
+    private $userRepository;
+    private $productRepository;
 
-    public function __construct(ProductReviewRepository $productReviewRepo)
+    public function __construct(ProductReviewRepository $productReviewRepo, UserRepository $userRepository, ProductRepository $productRepo)
     {
         $this->productReviewRepository = $productReviewRepo;
+        $this->userRepository = $userRepository;
+        $this->productRepository = $productRepo;
     }
 
     /**
@@ -45,6 +51,12 @@ class ProductReviewAPIController extends Controller
             Flash::error($e->getMessage());
         }
         $productReviews = $this->productReviewRepository->all();
+
+        foreach ($productReviews as $productReview) {
+            $productReview->user_name= $this->userRepository->findByField('id', $productReview->user_id)->first()->name;
+            $productReview->product_name= $this->productRepository->findByField('id', $productReview->product_id)->first()->name;
+        }
+
 
         return $this->sendResponse($productReviews->toArray(), 'Product Reviews retrieved successfully');
     }
@@ -67,6 +79,8 @@ class ProductReviewAPIController extends Controller
         if (empty($productReview)) {
             return $this->sendError('Product Review not found');
         }
+
+
 
         return $this->sendResponse($productReview->toArray(), 'Product Review retrieved successfully');
     }

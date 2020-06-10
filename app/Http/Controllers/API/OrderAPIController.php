@@ -30,6 +30,7 @@ use InfyOm\Generator\Criteria\LimitOffsetCriteria;
 use Prettus\Repository\Criteria\RequestCriteria;
 use Prettus\Repository\Exceptions\RepositoryException;
 use Prettus\Validator\Exceptions\ValidatorException;
+use App\Repositories\OrderStatusRepository;
 use Stripe\Stripe;
 use Stripe\Token;
 
@@ -51,6 +52,7 @@ class OrderAPIController extends Controller
     private $paymentRepository;
     /** @var  NotificationRepository */
     private $notificationRepository;
+    private $orderStatusRepository;
 
     /**
      * OrderAPIController constructor.
@@ -61,7 +63,7 @@ class OrderAPIController extends Controller
      * @param NotificationRepository $notificationRepo
      * @param UserRepository $userRepository
      */
-    public function __construct(OrderRepository $orderRepo, ProductOrderRepository $productOrderRepository, CartRepository $cartRepo, PaymentRepository $paymentRepo, NotificationRepository $notificationRepo, UserRepository $userRepository)
+    public function __construct(OrderRepository $orderRepo, ProductOrderRepository $productOrderRepository, CartRepository $cartRepo, PaymentRepository $paymentRepo, NotificationRepository $notificationRepo, UserRepository $userRepository, OrderStatusRepository $orderStatusRepo)
     {
         $this->orderRepository = $orderRepo;
         $this->productOrderRepository = $productOrderRepository;
@@ -69,6 +71,7 @@ class OrderAPIController extends Controller
         $this->userRepository = $userRepository;
         $this->paymentRepository = $paymentRepo;
         $this->notificationRepository = $notificationRepo;
+        $this->orderStatusRepository = $orderStatusRepo;
     }
 
     /**
@@ -88,7 +91,11 @@ class OrderAPIController extends Controller
             Flash::error($e->getMessage());
         }
         $orders = $this->orderRepository->all();
-
+        foreach($orders as $order){
+            $order->user_name = $this->userRepository->findByField('id', $order->user_id)->first()->name;
+            $order->order_status = $this->orderStatusRepository->findByField('id', $order->order_status_id)->first()->status;
+            $order->method = $this->paymentRepository->findByField('id', $order->payment_id)->first()->status;
+        }
         return $this->sendResponse($orders->toArray(), 'Orders retrieved successfully');
     }
 
