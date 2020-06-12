@@ -94,7 +94,8 @@ class OrderAPIController extends Controller
         foreach($orders as $order){
             $order->user_name = $this->userRepository->findByField('id', $order->user_id)->first()->name;
             $order->order_status = $this->orderStatusRepository->findByField('id', $order->order_status_id)->first()->status;
-            $order->method = $this->paymentRepository->findByField('id', $order->payment_id)->first()->status;
+            $order->payment_status = $this->paymentRepository->findByField('id', $order->payment_id)->first()->status;
+            $order->method = $this->paymentRepository->findByField('id', $order->payment_id)->first()->method;
         }
         return $this->sendResponse($orders->toArray(), 'Orders retrieved successfully');
     }
@@ -118,6 +119,11 @@ class OrderAPIController extends Controller
                 Flash::error($e->getMessage());
             }
             $order = $this->orderRepository->findWithoutFail($id);
+            $order->user_name = $this->userRepository->findByField('id', $order->user_id)->first()->name;
+            $order->user_phone = $this->userRepository->findByField('id', $order->user_id)->first()->name;
+            $order->order_status = $this->orderStatusRepository->findByField('id', $order->order_status_id)->first()->status;
+            $order->payment_status = $this->paymentRepository->findByField('id', $order->payment_id)->first()->status;
+            $order->method = $this->paymentRepository->findByField('id', $order->payment_id)->first()->method;
         }
 
         if (empty($order)) {

@@ -74,6 +74,8 @@ class ProductReviewAPIController extends Controller
         /** @var ProductReview $productReview */
         if (!empty($this->productReviewRepository)) {
             $productReview = $this->productReviewRepository->findWithoutFail($id);
+            $productReview->user_name= $this->userRepository->findByField('id', $productReview->user_id)->first()->name;
+            $productReview->product_name= $this->productRepository->findByField('id', $productReview->product_id)->first()->name;
         }
 
         if (empty($productReview)) {
