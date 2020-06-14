@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\Response;
 use Prettus\Repository\Exceptions\RepositoryException;
 use Flash;
 use Prettus\Validator\Exceptions\ValidatorException;
-
+use App\Repositories\UserRepository;
+use App\Repositories\MarketRepository;
 /**
  * Class MarketReviewController
  * @package App\Http\Controllers\API
@@ -25,10 +26,14 @@ class MarketReviewAPIController extends Controller
 {
     /** @var  MarketReviewRepository */
     private $marketReviewRepository;
+    private $marketRepository;
+    private $userRepository;
 
-    public function __construct(MarketReviewRepository $marketReviewRepo)
+    public function __construct(MarketReviewRepository $marketReviewRepo, UserRepository $userRepository, MarketRepository $marketRepository)
     {
         $this->marketReviewRepository = $marketReviewRepo;
+        $this->marketRepository = $marketRepository;
+        $this->userRepository = $userRepository;
     }
 
     /**
@@ -47,7 +52,11 @@ class MarketReviewAPIController extends Controller
             Flash::error($e->getMessage());
         }
         $marketReviews = $this->marketReviewRepository->all();
-
+        foreach($marketReviews as $marketReview)
+        {
+            $marketReview->user_name= $this->userRepository->findByField('id', $marketReview->user_id)->first()->name;
+            $marketReview->market_name= $this->marketRepository->findByField('id', $marketReview->market_id)->first()->name;
+        }
         return $this->sendResponse($marketReviews->toArray(), 'Market Reviews retrieved successfully');
     }
 

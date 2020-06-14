@@ -12,6 +12,7 @@ use InfyOm\Generator\Criteria\LimitOffsetCriteria;
 use Prettus\Repository\Criteria\RequestCriteria;
 use Prettus\Repository\Exceptions\RepositoryException;
 use Prettus\Validator\Exceptions\ValidatorException;
+use App\Repositories\UserRepository;
 
 /**
  * Class DeliveryAddressController
@@ -21,10 +22,12 @@ class DeliveryAddressAPIController extends Controller
 {
     /** @var  DeliveryAddressRepository */
     private $deliveryAddressRepository;
+    private $userRepository;
 
-    public function __construct(DeliveryAddressRepository $deliveryAddressRepo)
+    public function __construct(DeliveryAddressRepository $deliveryAddressRepo, UserRepository $userRepository)
     {
         $this->deliveryAddressRepository = $deliveryAddressRepo;
+        $this->userRepository = $userRepository;
     }
 
     /**
@@ -43,7 +46,10 @@ class DeliveryAddressAPIController extends Controller
             Flash::error($e->getMessage());
         }
         $deliveryAddresses = $this->deliveryAddressRepository->all();
-
+        foreach($deliveryAddresses as $deliveryAddress){
+            $deliveryAddress->user_name = $this->userRepository->findByField('id', $deliveryAddress->user_id)->first()->name;
+        }
+        
         return $this->sendResponse($deliveryAddresses->toArray(), 'Delivery Addresses retrieved successfully');
     }
 

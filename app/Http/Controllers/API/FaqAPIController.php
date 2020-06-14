@@ -12,7 +12,8 @@ use Prettus\Repository\Criteria\RequestCriteria;
 use Illuminate\Support\Facades\Response;
 use Prettus\Repository\Exceptions\RepositoryException;
 use Flash;
-
+use App\Repositories\UserRepository;
+use App\Repositories\FaqCategoryRepository;
 /**
  * Class FaqController
  * @package App\Http\Controllers\API
@@ -22,10 +23,14 @@ class FaqAPIController extends Controller
 {
     /** @var  FaqRepository */
     private $faqRepository;
+    private $userRepository;
+    private $faqCategoryRepository;
 
-    public function __construct(FaqRepository $faqRepo)
+    public function __construct(FaqRepository $faqRepo, UserRepository $userRepository, FaqCategoryRepository $faqCategoryRepository)
     {
         $this->faqRepository = $faqRepo;
+        $this->userRepository = $userRepository;
+        $this->faqCategoryRepository = $faqCategoryRepository;
     }
 
     /**
@@ -44,7 +49,10 @@ class FaqAPIController extends Controller
             Flash::error($e->getMessage());
         }
         $faqs = $this->faqRepository->all();
-
+        foreach($faqs as $faq)
+        {
+            $faq->faq_category_name = $this->faqCategoryRepository->findByField('id', $faq->faq_category_id)->first()->name;
+        }
         return $this->sendResponse($faqs->toArray(), 'Faqs retrieved successfully');
     }
 
