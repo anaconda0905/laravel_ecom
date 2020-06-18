@@ -56,6 +56,7 @@ Route::resource('option_groups', 'API\OptionGroupAPIController');
 
 Route::resource('options', 'API\OptionAPIController');
 
+Route::get('dashboard', 'API\DashboardAPIController@index');
 
 Route::middleware('auth:api')->group(function () {
     Route::group(['middleware' => ['role:driver']], function () {

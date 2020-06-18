@@ -13,6 +13,8 @@ use InfyOm\Generator\Criteria\LimitOffsetCriteria;
 use Prettus\Repository\Criteria\RequestCriteria;
 use Prettus\Repository\Exceptions\RepositoryException;
 use Prettus\Validator\Exceptions\ValidatorException;
+use App\Repositories\ProductRepository;
+use App\Repositories\UserRepository;
 
 /**
  * Class FavoriteController
@@ -23,10 +25,14 @@ class FavoriteAPIController extends Controller
 {
     /** @var  FavoriteRepository */
     private $favoriteRepository;
+    private $productRepository;
+    private $userRepository;
 
-    public function __construct(FavoriteRepository $favoriteRepo)
+    public function __construct(FavoriteRepository $favoriteRepo, UserRepository $userRepository, ProductRepository $productRepository)
     {
         $this->favoriteRepository = $favoriteRepo;
+        $this->userRepository = $userRepository;
+        $this->productRepository = $productRepository;
     }
 
     /**
@@ -45,6 +51,11 @@ class FavoriteAPIController extends Controller
             return $this->sendError($e->getMessage());
         }
         $favorites = $this->favoriteRepository->all();
+        foreach($favorites as $favorite)
+        {
+            $favorite->user_name= $this->userRepository->findByField('id', $favorite->user_id)->first()->name;
+            $favorite->product_name= $this->productRepository->findByField('id', $favorite->product_id)->first()->name;
+        }
 
         return $this->sendResponse($favorites->toArray(), 'Favorites retrieved successfully');
     }

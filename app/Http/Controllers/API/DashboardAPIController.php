@@ -1,15 +1,30 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
+use App\Http\Controllers\Controller;
+use App\Models\Field;
+use App\Repositories\FieldRepository;
+use App\Repositories\MarketRepository;
 use App\Repositories\OrderRepository;
 use App\Repositories\PaymentRepository;
-use App\Repositories\MarketRepository;
 use App\Repositories\UserRepository;
+use Flash;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
+use InfyOm\Generator\Criteria\LimitOffsetCriteria;
+use Prettus\Repository\Criteria\RequestCriteria;
+use Prettus\Repository\Exceptions\RepositoryException;
 
-class DashboardController extends Controller
+/**
+ * Class FieldController
+ * @package App\Http\Controllers\API
+ */
+
+class DashboardAPIController extends Controller
 {
+    /** @var  FieldRepository */
+    private $fieldRepository;
 
     /** @var  OrderRepository */
     private $orderRepository;
@@ -25,33 +40,26 @@ class DashboardController extends Controller
 
     public function __construct(OrderRepository $orderRepo, UserRepository $userRepo, PaymentRepository $paymentRepo, MarketRepository $marketRepo)
     {
-        parent::__construct();
         $this->orderRepository = $orderRepo;
         $this->userRepository = $userRepo;
         $this->marketRepository = $marketRepo;
         $this->paymentRepository = $paymentRepo;
     }
-
     /**
-     * Display a listing of the resource.
+     * Display a listing of the Field.
+     * GET|HEAD /fields
      *
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function index()
+    public function index(Request $request)
     {
         $ordersCount = $this->orderRepository->count();
         $membersCount = $this->userRepository->count();
         $marketsCount = $this->marketRepository->count();
         $markets = $this->marketRepository->limit(4)->get();
         $earning = $this->paymentRepository->all()->sum('price');
-        $ajaxEarningUrl = route('payments.byMonth',['api_token'=>auth()->user()->api_token]);
-//        dd($ajaxEarningUrl);
-        return view('dashboard.index')
-            ->with("ajaxEarningUrl", $ajaxEarningUrl)
-            ->with("ordersCount", $ordersCount)
-            ->with("marketsCount", $marketsCount)
-            ->with("markets", $markets)
-            ->with("membersCount", $membersCount)
-            ->with("earning", $earning);
+        $data=array("total_orders"=>$ordersCount, "total_clients"=>$membersCount, "total_markets"=>$marketsCount, "typical_markets"=>$markets, "total_earnings"=>$earning);
+        return $this->sendResponse($data, 'Dashboard data retrieved successfully');
     }
 }
